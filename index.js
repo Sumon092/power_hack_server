@@ -23,6 +23,22 @@ const uri = `mongodb+srv://power_user:SmPGiks1AvIXCmgU@cluster0.h528v.mongodb.ne
 console.log(uri);
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
+function verifyJWT(req, res, next) {
+    const authorization = req.headers.authorization;
+    if (!authorization) {
+        return res.status(401).send({ message: 'unauthorized access' });
+    }
+    const token = authorization.split(' ')[1];
+    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, function (err, decoded) {
+        if (err) {
+            return res.status(403).send({ message: 'forbidden access' })
+        }
+        req.decoded = decoded;
+        next();
+    })
+
+}
+
 
 async function run() {
     try {
@@ -37,7 +53,7 @@ async function run() {
             res.send(billings)
         });
 
-        app.post('/login', async (req, res) => {
+        app.post('/login', verifyJWT, async (req, res) => {
             let requestUser = req.body;
             const data = await userCollection.find({ email: { $eq: requestUser.email } }).toArray();
             if (data[0]?.email === requestUser.email && requestUser.pass === data[0]?.pass) {
@@ -71,12 +87,22 @@ async function run() {
             const results = await userCollection.updateOne(filter, updateDoc, options);
             res.send(results);
 
-            app.delete('/delete-billing/:id', async (req, res) => {
-                // const products = req.body;
-                const id = req.params._id;
-                const query = { ObjectId: id };
-                console.log(query);
-                const result = await productsCollection.deleteOne(query);
+            // delete Billings 
+            app.delete('/billing', async (req, res) => {
+
+                console.log('route is ok');
+                res.send('data hasbeen delete')
+            })
+
+            // app.
+
+            app.delete('/deleteBilling/:id', async (req, res) => {
+                const id = req.params.id;
+
+                console.log(req.params, "data _Id")
+                console.log('id', id);
+                const query = { _id: ObjectId(id) };
+                const result = await billingCollection.deleteOne(query);
                 res.send(result);
             });
         })
