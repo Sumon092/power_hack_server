@@ -19,13 +19,84 @@ app.use(function (req, res, next) {
     next()
 });
 
-const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.h528v.mongodb.net/?retryWrites=true&w=majority`;
+const uri = `mongodb+srv://power_user:SmPGiks1AvIXCmgU@cluster0.h528v.mongodb.net/?retryWrites=true&w=majority`;
+console.log(uri);
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
-client.connect(err => {
-    const collection = client.db("test").collection("devices");
-    // perform actions on the collection object
-    client.close();
-});
+
+
+async function run() {
+    try {
+        await client.connect();
+        console.log("db connected");
+        const billingCollection = client.db('power_db').collection('billings');
+        const userCollection = client.db('power_db').collection('users');
+        console.log('sfdsfdsfds');
+
+        app.get('/billingList', async (req, res) => {
+            const billings = await billingCollection.find().toArray();
+            console.log('billings');
+            res.send(billings)
+        });
+
+        app.post('/login', async (req, res) => {
+            let requestUser = req.body;
+
+
+
+
+            // console.log(req.body);
+
+            const data = await userCollection.find({ email: { $eq: requestUser.email } }).toArray();
+
+            //console.log(data, "data email");
+
+            if (data[0]?.email === requestUser.email && requestUser.pass === data[0]?.pass) {
+                const isStatus = {
+                    email: data[0]?.email, status: 200, success: true
+                }
+                res.send(isStatus)
+            }
+            else {
+                const isStatus = {
+                    email: data[0]?.email, status: 404, success: false
+                }
+                res.send(isStatus)
+            }
+
+            console.log(data, " from database")
+
+            // let userEmail = user.email
+            // let userPassword = user.pass;
+
+            // if (userEmail === email && userPassword === pass) {
+            //     res.statusCode = 200
+            // }
+            // else {
+            //     res.statusCode = 100
+            // }
+        });
+
+
+
+        app.put('/registration', async (req, res) => {
+            const name = req.params.name;
+            const email = req.params.email;
+            const pass = req.params.pass;
+            const user = req.body;
+            const filter = { email: email, name: name, pass: pass }
+            const options = { upsert: true }
+            const updateDoc = {
+                $set: user,
+            };
+            const results = await userCollection.updateOne(filter, updateDoc, options);
+            res.send(results)
+        })
+    }
+    finally {
+
+    }
+}
+run().catch(console.dir);
 
 app.get('/', (req, res) => {
     res.send('power pack is running')
