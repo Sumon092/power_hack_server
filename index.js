@@ -39,16 +39,7 @@ async function run() {
 
         app.post('/login', async (req, res) => {
             let requestUser = req.body;
-
-
-
-
-            // console.log(req.body);
-
             const data = await userCollection.find({ email: { $eq: requestUser.email } }).toArray();
-
-            //console.log(data, "data email");
-
             if (data[0]?.email === requestUser.email && requestUser.pass === data[0]?.pass) {
                 const isStatus = {
                     email: data[0]?.email, status: 200, success: true
@@ -78,7 +69,16 @@ async function run() {
                 $set: user,
             };
             const results = await userCollection.updateOne(filter, updateDoc, options);
-            res.send(results)
+            res.send(results);
+
+            app.delete('/delete-billing/:id', async (req, res) => {
+                // const products = req.body;
+                const id = req.params._id;
+                const query = { ObjectId: id };
+                console.log(query);
+                const result = await productsCollection.deleteOne(query);
+                res.send(result);
+            });
         })
     }
     finally {
