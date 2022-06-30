@@ -46,7 +46,6 @@ async function run() {
         console.log("db connected");
         const billingCollection = client.db('power_db').collection('billings');
         const userCollection = client.db('power_db').collection('users');
-        console.log('sfdsfdsfds');
 
         app.get('/billingList', async (req, res) => {
             const billings = await billingCollection.find().toArray();
@@ -87,14 +86,13 @@ async function run() {
             const results = await userCollection.updateOne(filter, updateDoc, options);
             res.send(results);
 
-            // delete Billings 
-            app.delete('/billing', async (req, res) => {
-
-                console.log('route is ok');
-                res.send('data hasbeen delete')
-            })
-
-            // app.
+            app.post('/add-billing', async (req, res) => {
+                const billing = req.body;
+                console.log(billing + 'billing');
+                // const query = { email: reviews.email, name: reviews.name, rating: reviews.ratings, ratingText: reviews.ratingText }
+                const result = await billingCollection.insertOne(billing);
+                res.send(result)
+            });
 
             app.delete('/deleteBilling/:id', async (req, res) => {
                 const id = req.params.id;
