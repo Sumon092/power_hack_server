@@ -34,7 +34,6 @@ async function run() {
 
         app.get('/billingList', async (req, res) => {
             const billings = await billingCollection.find().toArray();
-            console.log('billings');
             res.send(billings)
         });
 
@@ -64,16 +63,6 @@ async function run() {
             }
 
             console.log(data, " from database")
-
-            // let userEmail = user.email
-            // let userPassword = user.pass;
-
-            // if (userEmail === email && userPassword === pass) {
-            //     res.statusCode = 200
-            // }
-            // else {
-            //     res.statusCode = 100
-            // }
         });
 
 
